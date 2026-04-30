@@ -380,7 +380,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── LOAD MODEL ────────────────────────────────────────────────────────────────
-MODEL_PATH = "model_travel_insurance_lr_balanced.sav"
+MODEL_PATH = "model_travel_insurance_balanced.sav"
 
 @st.cache_resource
 def load_model(path):
