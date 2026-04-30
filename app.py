@@ -700,22 +700,83 @@ with col_right:
                 </div>
                 """, unsafe_allow_html=True)
 
-            # ── Probability bar ──
-            fill_class = "prob-bar-fill-high" if is_claim else "prob-bar-fill-low"
-            pct_class  = "prob-pct-high" if is_claim else "prob-pct-low"
-            st.markdown(f"""
-            <div style="margin-top:18px; padding: 16px 18px; background:#0d1117; border:1px solid #21262d; border-radius:10px;">
-                <div style="color:#6e7681; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
-                    Probabilitas Klaim
-                </div>
-                <div class="prob-row">
-                    <div class="prob-bar-bg">
-                        <div class="{fill_class}" style="width:{min(prob_pct, 100):.1f}%;"></div>
-                    </div>
-                    <div class="prob-pct {pct_class}">{prob_pct:.1f}%</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            # ── Gauge Chart ──
+            import math
+
+            cx, cy, r = 120, 105, 78
+
+            def polar(angle_deg, radius=r):
+                rad = math.radians(angle_deg)
+                return cx + radius * math.cos(rad), cy - radius * math.sin(rad)
+
+            def arc_path(start_deg, end_deg, radius=r, inner=56):
+                sx, sy   = polar(start_deg, radius)
+                ex, ey   = polar(end_deg,   radius)
+                six, siy = polar(start_deg, inner)
+                eix, eiy = polar(end_deg,   inner)
+                large = 1 if abs(start_deg - end_deg) > 180 else 0
+                return (
+                    f"M {sx:.2f} {sy:.2f} "
+                    f"A {radius} {radius} 0 {large} 0 {ex:.2f} {ey:.2f} "
+                    f"L {eix:.2f} {eiy:.2f} "
+                    f"A {inner} {inner} 0 {large} 1 {six:.2f} {siy:.2f} Z"
+                )
+
+            def p2a(p): return 180 - (p / 100) * 180
+
+            zones = [(0,40,"#2ea043"),(40,70,"#d29922"),(70,100,"#f85149")]
+            zone_paths = ""
+            for zs, ze, zc in zones:
+                zone_paths += f'<path d="{arc_path(p2a(zs), p2a(ze))}" fill="{zc}" opacity="0.18"/>' 
+
+            needle_angle = p2a(prob_pct)
+            if prob_pct > 0:
+                act_color = "#f85149" if prob_pct>=70 else ("#d29922" if prob_pct>=40 else "#3fb950")
+                active_arc = f'<path d="{arc_path(180, needle_angle)}" fill="{act_color}" opacity="0.82"/>' 
+            else:
+                active_arc = ""
+
+            nad = math.radians(needle_angle)
+            nx  = cx + 70 * math.cos(nad)
+            ny  = cy - 70 * math.sin(nad)
+
+            ticks_svg = ""
+            for tv, tl in [(0,"0%"),(25,"25%"),(50,"50%"),(75,"75%"),(100,"100%")]:
+                ta = p2a(tv)
+                ox,oy = polar(ta, r+4);  ix,iy = polar(ta, r-4);  lx,ly = polar(ta, r+16)
+                ticks_svg += f'<line x1="{ix:.1f}" y1="{iy:.1f}" x2="{ox:.1f}" y2="{oy:.1f}" stroke="#6e7681" stroke-width="1.5"/>' 
+                ticks_svg += f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" dominant-baseline="middle" fill="#6e7681" font-size="8">{tl}</text>' 
+
+            ta2 = p2a(threshold * 100)
+            ox2,oy2 = polar(ta2,r+6); ix2,iy2 = polar(ta2,r-6); lx2,ly2 = polar(ta2,r+22)
+            ticks_svg += f'<line x1="{ix2:.1f}" y1="{iy2:.1f}" x2="{ox2:.1f}" y2="{oy2:.1f}" stroke="#d29922" stroke-width="2" stroke-dasharray="3,2"/>' 
+            ticks_svg += f'<text x="{lx2:.1f}" y="{ly2:.1f}" text-anchor="middle" fill="#d29922" font-size="7.5" font-weight="bold">THR</text>' 
+
+            gc = "#f85149" if prob_pct>=70 else ("#d29922" if prob_pct>=40 else "#3fb950")
+
+            gauge_html = f"""
+            <div style="margin-top:18px; padding:18px 14px 12px; background:#0d1117; border:1px solid #21262d; border-radius:12px;">
+              <div style="color:#6e7681; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; text-align:center;">
+                Probabilitas Klaim
+              </div>
+              <svg viewBox="0 0 240 128" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:300px; display:block; margin:0 auto;">
+                <path d="{arc_path(180, 0)}" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+                {zone_paths}
+                {active_arc}
+                {ticks_svg}
+                <line x1="{cx}" y1="{cy}" x2="{nx:.2f}" y2="{ny:.2f}" stroke="{gc}" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="{cx}" cy="{cy}" r="6" fill="{gc}" opacity="0.9"/>
+                <circle cx="{cx}" cy="{cy}" r="3" fill="#0d1117"/>
+                <text x="{cx}" y="{cy+22}" text-anchor="middle" fill="{gc}" font-size="22" font-weight="800">{prob_pct:.1f}%</text>
+                <text x="{cx}" y="{cy+34}" text-anchor="middle" fill="#6e7681" font-size="9">probabilitas klaim</text>
+              </svg>
+              <div style="display:flex; justify-content:center; gap:14px; margin-top:4px; flex-wrap:wrap;">
+                <span style="font-size:11px; color:#3fb950;">🟢 Rendah (0–40%)</span>
+                <span style="font-size:11px; color:#d29922;">🟡 Sedang (40–70%)</span>
+                <span style="font-size:11px; color:#f85149;">🔴 Tinggi (70–100%)</span>
+              </div>
+            </div>"""
+            st.markdown(gauge_html, unsafe_allow_html=True)
 
             # ── Threshold info ──
             st.markdown(f"""
