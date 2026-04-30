@@ -17,7 +17,6 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-    /* ── Global & Body ── */
     html, body, [class*="css"] {
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }
@@ -52,6 +51,17 @@ st.markdown("""
     [data-testid="stSidebar"] .stNumberInput > div > div > input:focus {
         border-color: #38bdf8 !important;
         box-shadow: 0 0 0 3px rgba(56,189,248,0.15) !important;
+    }
+
+    /* FIX 1: Hapus padding-top sidebar agar header box tidak terpotong */
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 0 !important;
+    }
+    [data-testid="stSidebar"] .block-container {
+        padding-top: 0 !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        padding-top: 0 !important;
     }
 
     /* ── Main content area ── */
@@ -257,89 +267,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ── Result banner ── */
-    .result-claim {
-        background: linear-gradient(135deg, rgba(30,10,10,0.9), rgba(50,10,10,0.9));
-        border: 2px solid rgba(248,113,113,0.6);
-        border-radius: 16px;
-        padding: 32px 28px;
-        text-align: center;
-        margin-top: 4px;
-        box-shadow: 0 0 40px rgba(248,113,113,0.1);
-    }
-    .result-no-claim {
-        background: linear-gradient(135deg, rgba(10,30,25,0.9), rgba(10,40,30,0.9));
-        border: 2px solid rgba(52,211,153,0.5);
-        border-radius: 16px;
-        padding: 32px 28px;
-        text-align: center;
-        margin-top: 4px;
-        box-shadow: 0 0 40px rgba(52,211,153,0.08);
-    }
-
-    /* ── Risk badge ── */
-    .risk-badge-high {
-        display: inline-block;
-        background: rgba(248,113,113,0.15);
-        color: #f87171;
-        border: 1px solid rgba(248,113,113,0.4);
-        border-radius: 999px;
-        padding: 7px 22px;
-        font-size: 13px;
-        font-weight: 800;
-        margin-top: 14px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-    .risk-badge-low {
-        display: inline-block;
-        background: rgba(52,211,153,0.12);
-        color: #34d399;
-        border: 1px solid rgba(52,211,153,0.3);
-        border-radius: 999px;
-        padding: 7px 22px;
-        font-size: 13px;
-        font-weight: 800;
-        margin-top: 14px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    /* ── Probability bar ── */
-    .prob-row {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-top: 8px;
-    }
-    .prob-bar-bg {
-        flex: 1;
-        background: rgba(15, 30, 50, 0.8);
-        border-radius: 999px;
-        height: 10px;
-        overflow: hidden;
-    }
-    .prob-bar-fill-high {
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #dc2626, #f87171);
-        transition: width 0.5s ease;
-    }
-    .prob-bar-fill-low {
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #059669, #34d399);
-        transition: width 0.5s ease;
-    }
-    .prob-pct {
-        font-size: 24px;
-        font-weight: 900;
-        min-width: 66px;
-        text-align: right;
-    }
-    .prob-pct-high { color: #f87171; }
-    .prob-pct-low  { color: #34d399; }
-
     /* ── Metric chips ── */
     .metric-row {
         display: flex;
@@ -430,14 +357,12 @@ st.markdown("""
         transform: translateY(0px) !important;
     }
 
-    /* ── Divider ── */
     hr {
         border: none;
         border-top: 1px solid rgba(56, 189, 248, 0.1);
         margin: 22px 0;
     }
 
-    /* ── Sidebar section header ── */
     .sidebar-section {
         color: #38bdf8;
         font-size: 11px;
@@ -448,33 +373,6 @@ st.markdown("""
         border-bottom: 1px solid rgba(56, 189, 248, 0.15);
         margin-bottom: 14px;
         margin-top: 6px;
-    }
-
-    /* ── Sidebar header box ── */
-    .sidebar-header-box {
-        text-align: center;
-        padding: 20px 8px 16px 8px;
-        background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(52,211,153,0.06));
-        border-radius: 12px;
-        border: 1px solid rgba(56, 189, 248, 0.15);
-        margin-bottom: 20px;
-    }
-    .sidebar-header-icon {
-        font-size: 34px;
-        margin-bottom: 8px;
-        display: block;
-    }
-    .sidebar-header-title {
-        color: #e2e8f0;
-        font-size: 15px;
-        font-weight: 800;
-        margin-bottom: 4px;
-        letter-spacing: -0.3px;
-    }
-    .sidebar-header-sub {
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -551,17 +449,21 @@ model_name         = model_pkg["model_name"]
 
 # ─── SIDEBAR — INPUT FORM ──────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-    <div style="text-align:center; padding:22px 12px 18px 12px;
-                background:linear-gradient(135deg,rgba(14,165,233,0.12),rgba(52,211,153,0.08));
-                border-radius:14px; border:1px solid rgba(56,189,248,0.2);
-                margin-bottom:22px; margin-top:4px;">
-        <div style="font-size:36px; margin-bottom:10px; line-height:1;">🛡️</div>
-        <div style="color:#e2e8f0; font-size:16px; font-weight:800;
-                    letter-spacing:-0.3px; margin-bottom:4px;">Input Pemegang Polis</div>
-        <div style="color:#64748b; font-size:12px; font-weight:500;">Isi semua field di bawah ini</div>
-    </div>
-    """, unsafe_allow_html=True)
+    # FIX 1: Sidebar header — gunakan st.markdown dengan margin-top: 0 dan pastikan
+    # tidak ada elemen Streamlit default di atasnya yang mendorong box ini ke bawah.
+    # Kuncinya: hapus st.markdown spacer, dan gunakan CSS padding-top: 0 pada sidebar.
+    st.markdown(
+        """<div style="text-align:center; padding:20px 10px 16px;
+            background:linear-gradient(135deg,rgba(14,165,233,0.14),rgba(52,211,153,0.09));
+            border-radius:14px; border:1px solid rgba(56,189,248,0.25);
+            margin-bottom:20px; margin-top:1rem;">
+            <div style="font-size:38px; line-height:1; margin-bottom:10px;">🛡️</div>
+            <div style="color:#e2e8f0; font-size:15px; font-weight:800; letter-spacing:-0.3px; margin-bottom:4px;">
+                Input Pemegang Polis</div>
+            <div style="color:#94a3b8; font-size:11px; font-weight:500;">Isi semua field di bawah ini</div>
+        </div>""",
+        unsafe_allow_html=True
+    )
 
     # ── Agency Info ──
     st.markdown('<div class="sidebar-section">🏢 Informasi Agen</div>', unsafe_allow_html=True)
@@ -669,13 +571,13 @@ with st.sidebar:
 
     st.button("🔄  Reset Input", use_container_width=True, on_click=reset_inputs)
 
-    # ── Sidebar footer ──
+    # FIX 4: Footer sidebar — warna teks lebih terang agar terbaca
     st.markdown("""
-    <div style="margin-top:28px; padding:14px 12px; background:rgba(8,22,42,0.5);
-                border-radius:10px; border:1px solid rgba(56,189,248,0.08); text-align:center;">
-        <div style="color:#334155; font-size:10px; font-weight:600; text-transform:uppercase;
-                    letter-spacing:1.5px; margin-bottom:6px;">Capstone Project · Module 3</div>
-        <div style="color:#1e40af; font-size:11px; font-weight:500;">Logistic Regression Balanced</div>
+    <div style="margin-top:28px; padding:14px 12px; background:rgba(14,36,64,0.85);
+                border-radius:10px; border:1px solid rgba(56,189,248,0.2); text-align:center;">
+        <div style="color:#94a3b8; font-size:10px; font-weight:700; text-transform:uppercase;
+                    letter-spacing:1.5px; margin-bottom:5px;">Capstone Project · Module 3</div>
+        <div style="color:#38bdf8; font-size:11px; font-weight:700;">Logistic Regression Balanced</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -683,7 +585,6 @@ with st.sidebar:
 col_left, col_right = st.columns([1.1, 1], gap="large")
 
 with col_left:
-    # ── Input Summary ──
     input_data = {
         "Agency": agency,
         "Agency Type": agency_type,
@@ -713,7 +614,6 @@ with col_left:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Model Info ──
     recall_color    = "#34d399" if metrics['Recall']  >= 0.7  else ("#fbbf24" if metrics['Recall']  >= 0.5  else "#f87171")
     precision_color = "#64748b"
     f1_color        = "#38bdf8" if metrics['F1']      >= 0.15 else "#fbbf24"
@@ -753,14 +653,13 @@ with col_left:
                 Dataset klaim sangat tidak seimbang (<strong style="color:#cbd5e1;">~1.7% klaim</strong>).
                 Model ini diprioritaskan untuk <strong style="color:#cbd5e1;">Recall tinggi</strong>
                 agar klaim aktual tidak terlewat — konsekuensinya Precision menjadi rendah
-                (trade-off yang disengaja). Hover pada label metrik untuk penjelasan lebih lanjut.
+                (trade-off yang disengaja).
             </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with col_right:
-    # ── Prediction Result ──
     if not predict_btn:
         st.markdown("""
         <div class="section-card">
@@ -774,7 +673,6 @@ with col_right:
         </div>
         """, unsafe_allow_html=True)
     else:
-        # ── Feature Engineering ──
         age_clipped      = np.clip(age, 18, 100)
         duration_clipped = max(duration, 0)
 
@@ -799,7 +697,6 @@ with col_right:
         is_online              = 1 if distribution_channel == "Online" else 0
         high_risk_destination  = 1 if destination in high_risk_dest_set else 0
 
-        # ── Build input DataFrame ──
         X_input = pd.DataFrame([{
             "Agency"               : agency,
             "Agency Type"          : agency_type,
@@ -819,7 +716,6 @@ with col_right:
             "High_Risk_Destination": high_risk_destination,
         }])
 
-        # ── Predict ──
         try:
             X_transformed = preprocessor.transform(X_input)
             prob          = float(model.predict_proba(X_transformed)[:, 1][0])
@@ -827,7 +723,6 @@ with col_right:
             is_claim      = pred_label == "Claim"
             prob_pct      = prob * 100
 
-            # ── Risk Score Category ──
             if prob_pct >= 70:
                 risk_level  = "VERY HIGH RISK"
                 risk_emoji  = "🚨"
@@ -865,48 +760,53 @@ with col_right:
             pred_sublabel = "Pemegang polis berpotensi mengajukan klaim." if is_claim else "Pemegang polis kemungkinan tidak mengajukan klaim."
             bar_width     = f"{min(prob_pct, 100):.1f}%"
             thr_left      = f"{threshold * 100:.1f}%"
-            thr_label     = f"threshold {threshold:.2f}"
+            thr_label     = f"thr {threshold:.2f}"
 
+            # FIX 3: Progress bar — pisahkan badge risk level ke baris terpisah,
+            # beri margin yang cukup antara badge dan progress bar, dan beri
+            # height lebih pada threshold marker area agar tidak bertumpuk.
             card_html = (
                 f'<div class="section-card" style="padding:20px 22px;">'
                 f'<div class="section-title">🎯 Hasil Prediksi</div>'
-                # outer result card
                 f'<div style="background:{risk_bg};border:2px solid {risk_border};border-radius:14px;'
-                f'padding:24px 20px 20px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">'
-                f'<div style="font-size:56px;margin-bottom:8px;line-height:1;">{risk_emoji}</div>'
-                f'<div style="font-size:34px;font-weight:900;color:{risk_color};letter-spacing:-1.5px;margin-bottom:6px;">{pred_display}</div>'
-                f'<div style="color:#94a3b8;font-size:13px;margin-bottom:16px;font-weight:500;">{pred_sublabel}</div>'
+                f'padding:24px 20px 22px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">'
+                f'<div style="font-size:52px;margin-bottom:8px;line-height:1;">{risk_emoji}</div>'
+                f'<div style="font-size:32px;font-weight:900;color:{risk_color};letter-spacing:-1.5px;margin-bottom:6px;">{pred_display}</div>'
+                f'<div style="color:#94a3b8;font-size:13px;margin-bottom:14px;font-weight:500;">{pred_sublabel}</div>'
+                # FIX 3a: Risk badge pisah dari progress bar dengan margin bawah yang cukup
                 f'<div style="display:inline-block;background:{risk_bg};color:{risk_color};'
-                f'border:1.5px solid {risk_border};border-radius:999px;padding:7px 26px;'
-                f'font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;">{risk_level}</div>'
-                # progress bar
-                f'<div style="margin:0 6px 6px 6px;">'
-                f'<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;'
-                f'color:#475569;margin-bottom:6px;letter-spacing:0.5px;">'
+                f'border:1.5px solid {risk_border};border-radius:999px;padding:6px 22px;'
+                f'font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;'
+                f'margin-bottom:22px;">{risk_level}</div>'
+                # FIX 3b: Progress bar section dengan label dan threshold jelas terpisah
+                f'<div style="margin:0 4px 4px 4px;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;'
+                f'color:#64748b;margin-bottom:7px;letter-spacing:0.5px;">'
                 f'<span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>VERY HIGH</span></div>'
                 f'<div style="background:rgba(8,22,42,0.8);border-radius:999px;height:10px;overflow:hidden;">'
                 f'<div style="width:{bar_width};height:100%;background:linear-gradient(90deg,#34d399,#fbbf24,#f87171);'
                 f'border-radius:999px;"></div></div>'
-                f'<div style="position:relative;height:22px;">'
+                # FIX 3c: Threshold marker area — height lebih besar (38px), teks tidak terpotong
+                f'<div style="position:relative;height:36px;margin-top:2px;">'
                 f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);'
-                f'border-left:2px dashed rgba(251,191,36,0.7);height:12px;"></div>'
+                f'border-left:2px dashed rgba(251,191,36,0.8);height:14px;top:0;"></div>'
                 f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);'
-                f'top:13px;font-size:9px;color:#fbbf24;white-space:nowrap;font-weight:700;">{thr_label}</div>'
+                f'top:16px;font-size:9.5px;color:#fbbf24;white-space:nowrap;font-weight:800;'
+                f'background:rgba(8,22,42,0.85);padding:2px 8px;border-radius:4px;'
+                f'border:1px solid rgba(251,191,36,0.25);">{thr_label}</div>'
                 f'</div></div>'
-                # desc
-                f'<div style="margin-top:12px;padding:11px 14px;background:rgba(8,22,42,0.6);'
+                f'<div style="margin-top:10px;padding:11px 14px;background:rgba(8,22,42,0.6);'
                 f'border-radius:10px;font-size:12.5px;color:#94a3b8;border-left:3px solid {risk_border};'
                 f'text-align:left;line-height:1.5;">{risk_desc}</div>'
-                f'</div>'  # end result card
-                f'</div>'  # end section-card
+                f'</div>'
+                f'</div>'
             )
             st.markdown(card_html, unsafe_allow_html=True)
 
-            # ── Gauge Chart — Larger & Clearer ──
+            # FIX 2: Gauge chart — perbesar viewBox height agar legend & angka tidak terpotong
             import math
 
-            # Bigger gauge: cx=160, cy=140, r=110
-            cx, cy, r = 160, 140, 108
+            cx, cy, r = 160, 130, 108
 
             def polar(angle_deg, radius=r):
                 rad = math.radians(angle_deg)
@@ -927,51 +827,46 @@ with col_right:
 
             def p2a(p): return 180 - (p / 100) * 180
 
-            # Zone arcs with stronger opacity
             zones = [(0,40,"#34d399"),(40,70,"#fbbf24"),(70,100,"#f87171")]
             zone_paths = ""
             for zs, ze, zc in zones:
                 zone_paths += f'<path d="{arc_path(p2a(zs), p2a(ze))}" fill="{zc}" opacity="0.22"/>'
 
-            # Background arc
             bg_arc = f'<path d="{arc_path(180, 0)}" fill="rgba(8,22,42,0.85)" stroke="rgba(56,189,248,0.12)" stroke-width="0.5"/>'
 
-            # Active filled arc
             needle_angle = p2a(prob_pct)
             if prob_pct > 0:
                 active_arc = f'<path d="{arc_path(180, needle_angle)}" fill="{gauge_color}" opacity="0.75"/>'
             else:
                 active_arc = ""
 
-            # Needle
             nad = math.radians(needle_angle)
             nx  = cx + 94 * math.cos(nad)
             ny  = cy - 94 * math.sin(nad)
 
-            # Ticks + labels
             ticks_svg = ""
             for tv, tl in [(0,"0%"),(25,"25%"),(50,"50%"),(75,"75%"),(100,"100%")]:
                 ta = p2a(tv)
-                ox,oy = polar(ta, r+5);  ix,iy = polar(ta, r-5);  lx,ly = polar(ta, r+20)
+                ox,oy = polar(ta, r+5);  ix,iy = polar(ta, r-5);  lx,ly = polar(ta, r+22)
                 ticks_svg += f'<line x1="{ix:.1f}" y1="{iy:.1f}" x2="{ox:.1f}" y2="{oy:.1f}" stroke="rgba(100,116,139,0.7)" stroke-width="2"/>'
                 ticks_svg += f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" dominant-baseline="middle" fill="#64748b" font-size="10" font-weight="600">{tl}</text>'
 
-            # Threshold marker
             ta2 = p2a(threshold * 100)
             ox2,oy2 = polar(ta2,r+8); ix2,iy2 = polar(ta2,r-8); lx2,ly2 = polar(ta2,r+28)
             ticks_svg += f'<line x1="{ix2:.1f}" y1="{iy2:.1f}" x2="{ox2:.1f}" y2="{oy2:.1f}" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="4,2"/>'
             ticks_svg += f'<text x="{lx2:.1f}" y="{ly2:.1f}" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="800">THR</text>'
 
-            # Zone labels (Low / Med / High)
             for tv, tl, tc in [(20,"LOW","#34d399"),(55,"MED","#fbbf24"),(85,"HIGH","#f87171")]:
                 ta = p2a(tv)
                 lx, ly = polar(ta, 58)
                 ticks_svg += f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" dominant-baseline="middle" fill="{tc}" font-size="8.5" font-weight="700" opacity="0.8">{tl}</text>'
 
+            # FIX 2: viewBox height 230 → cukup ruang untuk angka + legend di bawah
+            # cy turun sedikit (140→130) agar gauge tidak mepet atas
             gauge_html = f"""
-            <div class="section-card" style="padding:20px 18px 16px;">
+            <div class="section-card" style="padding:20px 18px 24px;">
               <div class="section-title">📊 Probabilitas Klaim</div>
-              <svg viewBox="0 0 320 175" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:360px; display:block; margin:0 auto;">
+              <svg viewBox="0 0 320 215" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:360px; display:block; margin:0 auto; overflow:visible;">
                 {bg_arc}
                 {zone_paths}
                 {active_arc}
@@ -981,19 +876,19 @@ with col_right:
                 <circle cx="{cx}" cy="{cy}" r="10" fill="{gauge_color}" opacity="0.9"/>
                 <circle cx="{cx}" cy="{cy}" r="6" fill="rgba(8,22,42,0.95)"/>
                 <circle cx="{cx}" cy="{cy}" r="3" fill="{gauge_color}"/>
-                <text x="{cx}" y="{cy+32}" text-anchor="middle" fill="{gauge_color}" font-size="32" font-weight="900">{prob_pct:.1f}%</text>
-                <text x="{cx}" y="{cy+50}" text-anchor="middle" fill="#475569" font-size="11" font-weight="600" letter-spacing="1">PROBABILITAS KLAIM</text>
+                <text x="{cx}" y="{cy+36}" text-anchor="middle" fill="{gauge_color}" font-size="34" font-weight="900">{prob_pct:.1f}%</text>
+                <text x="{cx}" y="{cy+56}" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700" letter-spacing="1.5">PROBABILITAS KLAIM</text>
               </svg>
-              <div style="display:flex; justify-content:center; gap:16px; margin-top:10px; flex-wrap:wrap;
+              <!-- FIX 2: Legend di luar SVG sebagai HTML biasa agar tidak terpotong -->
+              <div style="display:flex; justify-content:center; gap:14px; margin-top:12px; flex-wrap:wrap;
                           padding:10px 0 2px; border-top:1px solid rgba(56,189,248,0.08);">
-                <span style="font-size:12px; color:#34d399; font-weight:600;">🟢 Rendah (0–40%)</span>
-                <span style="font-size:12px; color:#fbbf24; font-weight:600;">🟡 Sedang (40–70%)</span>
-                <span style="font-size:12px; color:#f87171; font-weight:600;">🔴 Tinggi (70–100%)</span>
+                <span style="font-size:11.5px; color:#34d399; font-weight:600;">🟢 Rendah (0–40%)</span>
+                <span style="font-size:11.5px; color:#fbbf24; font-weight:600;">🟡 Sedang (40–70%)</span>
+                <span style="font-size:11.5px; color:#f87171; font-weight:600;">🔴 Tinggi (70–100%)</span>
               </div>
             </div>"""
             st.markdown(gauge_html, unsafe_allow_html=True)
 
-            # ── Threshold info ──
             st.markdown(f"""
             <div class="threshold-info">
                 <span style="font-size:18px;">📏</span>
@@ -1003,6 +898,7 @@ with col_right:
                 </span>
             </div>
             """, unsafe_allow_html=True)
+
             risk_factors = []
             safe_factors = []
 
@@ -1083,7 +979,6 @@ if predict_btn and model_pkg is not None:
             return '<span class="fe-badge-yes">Ya (1)</span>'
         return '<span class="fe-badge-no">Tidak (0)</span>'
 
-    fe_html = '<div class="fe-grid">'
     fe_items = [
         ("Age (Clipped)", f"{age_clipped} th"),
         ("Duration (Clipped)", f"{duration_clipped} hari"),
