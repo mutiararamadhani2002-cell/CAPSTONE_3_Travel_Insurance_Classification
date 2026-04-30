@@ -748,58 +748,30 @@ with col_right:
                 risk_border   = "#3fb950"
                 risk_desc     = "Risiko rendah — pemegang polis kemungkinan tidak mengajukan klaim."
 
-            pred_display  = "CLAIM"    if is_claim else "NO CLAIM"
+            pred_display  = "CLAIM" if is_claim else "NO CLAIM"
             pred_sublabel = "Pemegang polis berpotensi mengajukan klaim." if is_claim else "Pemegang polis kemungkinan tidak mengajukan klaim."
+            bar_width     = f"{min(prob_pct, 100):.1f}%"
+            thr_left      = f"{threshold * 100:.1f}%"
+            thr_label     = f"threshold {threshold:.2f}"
 
-            st.markdown(f"""
-            <div style="background:{risk_bg}; border:2px solid {risk_border};
-                        border-radius:14px; padding:24px 20px; text-align:center;">
-                <!-- Ikon & Prediksi -->
-                <div style="font-size:46px; margin-bottom:6px;">{risk_emoji}</div>
-                <div style="font-size:26px; font-weight:800; color:{risk_color};
-                            letter-spacing:-0.5px; margin-bottom:4px;">{pred_display}</div>
-                <div style="color:#8b949e; font-size:13px; margin-bottom:16px;">{pred_sublabel}</div>
-
-                <!-- Risk Score Badge -->
-                <div style="display:inline-block; background:{risk_bg}; color:{risk_color};
-                            border:1.5px solid {risk_border}; border-radius:999px;
-                            padding:6px 20px; font-size:13px; font-weight:700;
-                            letter-spacing:1px; text-transform:uppercase; margin-bottom:14px;">
-                    {risk_level}
-                </div>
-
-                <!-- Risk Level Bar -->
-                <div style="margin: 0 10px 6px 10px;">
-                    <div style="display:flex; justify-content:space-between;
-                                font-size:10px; color:#6e7681; margin-bottom:4px;">
-                        <span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>VERY HIGH</span>
-                    </div>
-                    <div style="background:#21262d; border-radius:999px; height:8px; overflow:hidden;">
-                        <div style="width:{min(prob_pct,100):.1f}%; height:100%;
-                                    background:linear-gradient(90deg, #3fb950, #d29922, #f85149);
-                                    border-radius:999px;"></div>
-                    </div>
-                    <!-- Threshold marker -->
-                    <div style="position:relative; height:14px; margin:0 0 0 0;">
-                        <div style="position:absolute; left:{threshold*100:.1f}%;
-                                    transform:translateX(-50%);
-                                    border-left:2px dashed #d29922; height:10px;"></div>
-                        <div style="position:absolute; left:{threshold*100:.1f}%;
-                                    transform:translateX(-50%);
-                                    top:10px; font-size:9px; color:#d29922; white-space:nowrap;">
-                            threshold {threshold:.2f}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Deskripsi risiko -->
-                <div style="margin-top:14px; padding:10px 14px; background:#0d1117;
-                            border-radius:8px; font-size:12px; color:#8b949e;
-                            border-left:3px solid {risk_border}; text-align:left;">
-                    {risk_desc}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            card_html = (
+                f'<div style="background:{risk_bg};border:2px solid {risk_border};border-radius:14px;padding:24px 20px;text-align:center;">'
+                f'<div style="font-size:46px;margin-bottom:6px;">{risk_emoji}</div>'
+                f'<div style="font-size:26px;font-weight:800;color:{risk_color};letter-spacing:-0.5px;margin-bottom:4px;">{pred_display}</div>'
+                f'<div style="color:#8b949e;font-size:13px;margin-bottom:16px;">{pred_sublabel}</div>'
+                f'<div style="display:inline-block;background:{risk_bg};color:{risk_color};border:1.5px solid {risk_border};border-radius:999px;padding:6px 20px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">{risk_level}</div>'
+                f'<div style="margin:0 10px 6px 10px;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:10px;color:#6e7681;margin-bottom:4px;"><span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>VERY HIGH</span></div>'
+                f'<div style="background:#21262d;border-radius:999px;height:8px;overflow:hidden;">'
+                f'<div style="width:{bar_width};height:100%;background:linear-gradient(90deg,#3fb950,#d29922,#f85149);border-radius:999px;"></div></div>'
+                f'<div style="position:relative;height:20px;">'
+                f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);border-left:2px dashed #d29922;height:10px;"></div>'
+                f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);top:11px;font-size:9px;color:#d29922;white-space:nowrap;">{thr_label}</div>'
+                f'</div></div>'
+                f'<div style="margin-top:14px;padding:10px 14px;background:#0d1117;border-radius:8px;font-size:12px;color:#8b949e;border-left:3px solid {risk_border};text-align:left;">{risk_desc}</div>'
+                f'</div>'
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
 
             # ── Gauge Chart ──
             import math
