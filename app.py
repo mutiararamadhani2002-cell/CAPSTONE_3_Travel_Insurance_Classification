@@ -418,6 +418,24 @@ if model_pkg is None:
     """, unsafe_allow_html=True)
     st.stop()
 
+# ─── SESSION STATE — DEFAULT VALUES ───────────────────────────────────────────
+DEFAULTS = {
+    "agency"               : "EPX",
+    "agency_type"          : "Travel Agency",
+    "distribution_channel" : "Online",
+    "product_name"         : "Cancellation Plan",
+    "gender"               : "Unknown",
+    "age"                  : 35,
+    "destination"          : "SINGAPORE",
+    "duration"             : 10,
+    "net_sales"            : 50.0,
+    "commission"           : 12.5,
+}
+
+for k, v in DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
 # ─── EXTRACT MODEL COMPONENTS ──────────────────────────────────────────────────
 preprocessor       = model_pkg["preprocessor"]
 model              = model_pkg["model"]
@@ -446,18 +464,19 @@ with st.sidebar:
         "EPX", "CWT", "JWT", "RAB", "CBH", "SSI", "KML", "C2B",
         "ADM", "LWC", "TST", "ART", "TTW", "JZI", "CCR", "CSR"
     ]
-    agency = st.selectbox("Agency", agency_options, index=0)
+    agency = st.selectbox("Agency", agency_options,
+        index=agency_options.index(st.session_state["agency"]), key="agency")
 
     agency_type = st.selectbox(
-        "Agency Type",
-        ["Airlines", "Travel Agency"],
-        index=1
+        "Agency Type", ["Airlines", "Travel Agency"],
+        index=["Airlines", "Travel Agency"].index(st.session_state["agency_type"]),
+        key="agency_type"
     )
 
     distribution_channel = st.selectbox(
-        "Distribution Channel",
-        ["Online", "Offline"],
-        index=0
+        "Distribution Channel", ["Online", "Offline"],
+        index=["Online", "Offline"].index(st.session_state["distribution_channel"]),
+        key="distribution_channel"
     )
 
     # ── Product ──
@@ -478,24 +497,22 @@ with st.sidebar:
         "1 way Comprehensive Plan", "3 way Comprehensive Plan",
         "Ticket Protector", "Annual Travel Protect Silver"
     ]
-    product_name = st.selectbox("Product Name", product_options, index=0)
+    product_name = st.selectbox("Product Name", product_options,
+        index=product_options.index(st.session_state["product_name"]), key="product_name")
 
     # ── Personal Info ──
     st.markdown('<div class="sidebar-section" style="margin-top:14px;">👤 Informasi Pemegang Polis</div>', unsafe_allow_html=True)
 
     gender = st.selectbox(
-        "Gender",
-        ["F", "M", "Unknown"],
-        index=2,
+        "Gender", ["F", "M", "Unknown"],
+        index=["F", "M", "Unknown"].index(st.session_state["gender"]),
+        key="gender",
         help="Pilih 'Unknown' jika data gender tidak tersedia"
     )
 
     age = st.number_input(
-        "Age (tahun)",
-        min_value=0,
-        max_value=120,
-        value=35,
-        step=1,
+        "Age (tahun)", min_value=0, max_value=120,
+        value=st.session_state["age"], step=1, key="age",
         help="Usia pemegang polis (akan di-clip ke rentang 18–100)"
     )
 
@@ -512,14 +529,12 @@ with st.sidebar:
         "GREECE", "PORTUGAL", "SWITZERLAND", "AUSTRIA", "SWEDEN",
         "OTHER"
     ]
-    destination = st.selectbox("Destination", destination_options, index=0)
+    destination = st.selectbox("Destination", destination_options,
+        index=destination_options.index(st.session_state["destination"]), key="destination")
 
     duration = st.number_input(
-        "Duration (hari)",
-        min_value=0,
-        max_value=730,
-        value=10,
-        step=1,
+        "Duration (hari)", min_value=0, max_value=730,
+        value=st.session_state["duration"], step=1, key="duration",
         help="Durasi perjalanan dalam hari (minimum 0)"
     )
 
@@ -528,23 +543,26 @@ with st.sidebar:
 
     net_sales = st.number_input(
         "Net Sales (nilai premi)",
-        value=50.0,
-        step=1.0,
-        format="%.2f",
+        value=st.session_state["net_sales"], step=1.0, format="%.2f", key="net_sales",
         help="Total nilai penjualan polis / premi"
     )
 
     commission = st.number_input(
-        "Commission in Value",
-        min_value=0.0,
-        value=12.5,
-        step=0.5,
-        format="%.2f",
+        "Commission in Value", min_value=0.0,
+        value=st.session_state["commission"], step=0.5, format="%.2f", key="commission",
         help="Komisi agen dalam nilai absolut"
     )
 
+    # ── Buttons ──
     st.markdown("<br>", unsafe_allow_html=True)
-    predict_btn = st.button("🔍  Prediksi Klaim", use_container_width=True)
+    predict_btn = st.button("🔍  Prediksi Klaim", use_container_width=True, type="primary")
+
+    # Reset button
+    def reset_inputs():
+        for k, v in DEFAULTS.items():
+            st.session_state[k] = v
+
+    st.button("🔄  Reset Input", use_container_width=True, on_click=reset_inputs)
 
 # ─── MAIN AREA ─────────────────────────────────────────────────────────────────
 
@@ -700,24 +718,88 @@ with col_right:
             is_claim      = pred_label == "Claim"
             prob_pct      = prob * 100
 
-            if is_claim:
-                st.markdown(f"""
-                <div class="result-claim">
-                    <div class="result-icon">⚠️</div>
-                    <div class="result-label result-label-claim">{pred_label}</div>
-                    <p class="result-sub">Pemegang polis berpotensi mengajukan klaim</p>
-                    <span class="risk-badge-high">🔴 HIGH RISK</span>
-                </div>
-                """, unsafe_allow_html=True)
+            # ── Risk Score Category (3 level berdasarkan prob_pct) ──
+            if prob_pct >= 70:
+                risk_level    = "VERY HIGH RISK"
+                risk_emoji    = "🚨"
+                risk_color    = "#f85149"
+                risk_bg       = "rgba(248,81,73,0.08)"
+                risk_border   = "#f85149"
+                risk_desc     = "Risiko sangat tinggi — perlu evaluasi mendalam oleh tim underwriting."
+            elif prob_pct >= 40:
+                risk_level    = "MEDIUM RISK"
+                risk_emoji    = "⚠️"
+                risk_color    = "#d29922"
+                risk_bg       = "rgba(210,153,34,0.08)"
+                risk_border   = "#d29922"
+                risk_desc     = "Risiko sedang — disarankan pemantauan lebih lanjut."
+            elif prob_pct >= threshold * 100:
+                risk_level    = "LOW-MEDIUM RISK"
+                risk_emoji    = "🔔"
+                risk_color    = "#58a6ff"
+                risk_bg       = "rgba(88,166,255,0.08)"
+                risk_border   = "#58a6ff"
+                risk_desc     = "Risiko di batas threshold — perlu perhatian standar."
             else:
-                st.markdown(f"""
-                <div class="result-no-claim">
-                    <div class="result-icon">✅</div>
-                    <div class="result-label result-label-no-claim">{pred_label}</div>
-                    <p class="result-sub">Pemegang polis kemungkinan tidak mengajukan klaim</p>
-                    <span class="risk-badge-low">🟢 LOW RISK</span>
+                risk_level    = "LOW RISK"
+                risk_emoji    = "✅"
+                risk_color    = "#3fb950"
+                risk_bg       = "rgba(63,185,80,0.08)"
+                risk_border   = "#3fb950"
+                risk_desc     = "Risiko rendah — pemegang polis kemungkinan tidak mengajukan klaim."
+
+            pred_display  = "CLAIM"    if is_claim else "NO CLAIM"
+            pred_sublabel = "Pemegang polis berpotensi mengajukan klaim." if is_claim else "Pemegang polis kemungkinan tidak mengajukan klaim."
+
+            st.markdown(f"""
+            <div style="background:{risk_bg}; border:2px solid {risk_border};
+                        border-radius:14px; padding:24px 20px; text-align:center;">
+                <!-- Ikon & Prediksi -->
+                <div style="font-size:46px; margin-bottom:6px;">{risk_emoji}</div>
+                <div style="font-size:26px; font-weight:800; color:{risk_color};
+                            letter-spacing:-0.5px; margin-bottom:4px;">{pred_display}</div>
+                <div style="color:#8b949e; font-size:13px; margin-bottom:16px;">{pred_sublabel}</div>
+
+                <!-- Risk Score Badge -->
+                <div style="display:inline-block; background:{risk_bg}; color:{risk_color};
+                            border:1.5px solid {risk_border}; border-radius:999px;
+                            padding:6px 20px; font-size:13px; font-weight:700;
+                            letter-spacing:1px; text-transform:uppercase; margin-bottom:14px;">
+                    {risk_level}
                 </div>
-                """, unsafe_allow_html=True)
+
+                <!-- Risk Level Bar -->
+                <div style="margin: 0 10px 6px 10px;">
+                    <div style="display:flex; justify-content:space-between;
+                                font-size:10px; color:#6e7681; margin-bottom:4px;">
+                        <span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>VERY HIGH</span>
+                    </div>
+                    <div style="background:#21262d; border-radius:999px; height:8px; overflow:hidden;">
+                        <div style="width:{min(prob_pct,100):.1f}%; height:100%;
+                                    background:linear-gradient(90deg, #3fb950, #d29922, #f85149);
+                                    border-radius:999px;"></div>
+                    </div>
+                    <!-- Threshold marker -->
+                    <div style="position:relative; height:14px; margin:0 0 0 0;">
+                        <div style="position:absolute; left:{threshold*100:.1f}%;
+                                    transform:translateX(-50%);
+                                    border-left:2px dashed #d29922; height:10px;"></div>
+                        <div style="position:absolute; left:{threshold*100:.1f}%;
+                                    transform:translateX(-50%);
+                                    top:10px; font-size:9px; color:#d29922; white-space:nowrap;">
+                            threshold {threshold:.2f}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deskripsi risiko -->
+                <div style="margin-top:14px; padding:10px 14px; background:#0d1117;
+                            border-radius:8px; font-size:12px; color:#8b949e;
+                            border-left:3px solid {risk_border}; text-align:left;">
+                    {risk_desc}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
             # ── Gauge Chart ──
             import math
@@ -807,6 +889,71 @@ with col_right:
                 </span>
             </div>
             """, unsafe_allow_html=True)
+
+            # ── Interpretasi Hasil ──
+            risk_factors = []
+            safe_factors = []
+
+            if high_risk_destination == 1:
+                risk_factors.append(("🌍", "Destinasi", f"{destination} termasuk destinasi berisiko tinggi"))
+            if is_long_trip == 1:
+                risk_factors.append(("📅", "Durasi", f"Perjalanan panjang {duration_clipped} hari (>14 hari)"))
+            if age_clipped >= 60:
+                risk_factors.append(("👤", "Usia", f"Usia {age_clipped} tahun (kelompok 60+)"))
+            if commission_rate >= 0.4:
+                risk_factors.append(("💰", "Komisi", f"Commission rate tinggi ({commission_rate:.0%})"))
+            if agency_type == "Airlines":
+                risk_factors.append(("✈️", "Tipe Agen", "Agen Airlines cenderung lebih berisiko"))
+            if duration_group in [">30 hari", "15-30 hari"]:
+                risk_factors.append(("🗓️", "Grup Durasi", f"Masuk kategori {duration_group}"))
+
+            if high_risk_destination == 0:
+                safe_factors.append(("🌍", "Destinasi", f"{destination} bukan destinasi berisiko tinggi"))
+            if is_long_trip == 0:
+                safe_factors.append(("📅", "Durasi", f"Perjalanan pendek {duration_clipped} hari (≤14 hari)"))
+            if age_clipped < 45:
+                safe_factors.append(("👤", "Usia", f"Usia {age_clipped} tahun (kelompok produktif)"))
+            if distribution_channel == "Online":
+                safe_factors.append(("💻", "Channel", "Distribusi online cenderung lebih rendah risiko"))
+            if commission_rate < 0.3:
+                safe_factors.append(("💰", "Komisi", f"Commission rate wajar ({commission_rate:.0%})"))
+
+            show_risk = risk_factors[:3]
+            show_safe = safe_factors[:3]
+
+            def make_factor_row(icon, label, desc, bg, border):
+                return (
+                    f'<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;'
+                    f'padding:7px 10px;background:{bg};border-radius:6px;border-left:2px solid {border};">'
+                    f'<span style="font-size:14px;">{icon}</span>'
+                    f'<span style="font-size:12px;color:#c9d1d9;"><strong style="color:#e6edf3;">{label}</strong> — {desc}</span>'
+                    f'</div>'
+                )
+
+            factors_html = ""
+            if show_risk:
+                factors_html += '<div style="margin-bottom:8px;">'
+                factors_html += '<div style="color:#f85149;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">⬆ Faktor Risiko</div>'
+                for icon, label, desc in show_risk:
+                    factors_html += make_factor_row(icon, label, desc, "#1a0a0a", "#f85149")
+                factors_html += "</div>"
+
+            if show_safe:
+                factors_html += "<div>"
+                factors_html += '<div style="color:#3fb950;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">⬇ Faktor Penurun Risiko</div>'
+                for icon, label, desc in show_safe:
+                    factors_html += make_factor_row(icon, label, desc, "#0a1a0a", "#3fb950")
+                factors_html += "</div>"
+
+            if factors_html:
+                st.markdown(
+                    '<div style="margin-top:14px;padding:14px 16px;background:#0d1117;'
+                    'border:1px solid #21262d;border-radius:10px;">'
+                    '<div style="color:#6e7681;font-size:11px;font-weight:700;text-transform:uppercase;'
+                    'letter-spacing:1px;margin-bottom:10px;">🔍 Interpretasi Faktor Risiko</div>'
+                    + factors_html + "</div>",
+                    unsafe_allow_html=True
+                )
 
             st.markdown("</div>", unsafe_allow_html=True)
 
