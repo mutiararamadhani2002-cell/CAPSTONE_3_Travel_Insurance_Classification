@@ -552,10 +552,14 @@ model_name         = model_pkg["model_name"]
 # ─── SIDEBAR — INPUT FORM ──────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div class="sidebar-header-box">
-        <span class="sidebar-header-icon">🛡️</span>
-        <div class="sidebar-header-title">Input Pemegang Polis</div>
-        <div class="sidebar-header-sub">Isi semua field di bawah ini</div>
+    <div style="text-align:center; padding:22px 12px 18px 12px;
+                background:linear-gradient(135deg,rgba(14,165,233,0.12),rgba(52,211,153,0.08));
+                border-radius:14px; border:1px solid rgba(56,189,248,0.2);
+                margin-bottom:22px; margin-top:4px;">
+        <div style="font-size:36px; margin-bottom:10px; line-height:1;">🛡️</div>
+        <div style="color:#e2e8f0; font-size:16px; font-weight:800;
+                    letter-spacing:-0.3px; margin-bottom:4px;">Input Pemegang Polis</div>
+        <div style="color:#64748b; font-size:12px; font-weight:500;">Isi semua field di bawah ini</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -680,11 +684,6 @@ col_left, col_right = st.columns([1.1, 1], gap="large")
 
 with col_left:
     # ── Input Summary ──
-    st.markdown("""
-    <div class="section-card">
-        <div class="section-title">📋 Ringkasan Input</div>
-    """, unsafe_allow_html=True)
-
     input_data = {
         "Agency": agency,
         "Agency Type": agency_type,
@@ -706,15 +705,15 @@ with col_left:
             <div class="input-value">{value}</div>
         </div>"""
     grid_html += '</div>'
-    st.markdown(grid_html + "</div>", unsafe_allow_html=True)
 
-    # ── Model Info ──
-    st.markdown("""
-    <div class="section-card" style="margin-top:0;">
-        <div class="section-title">🤖 Informasi Model & Performa</div>
+    st.markdown(f"""
+    <div class="section-card">
+        <div class="section-title">📋 Ringkasan Input</div>
+        {grid_html}
+    </div>
     """, unsafe_allow_html=True)
 
-    # Color logic for metrics
+    # ── Model Info ──
     recall_color    = "#34d399" if metrics['Recall']  >= 0.7  else ("#fbbf24" if metrics['Recall']  >= 0.5  else "#f87171")
     precision_color = "#64748b"
     f1_color        = "#38bdf8" if metrics['F1']      >= 0.15 else "#fbbf24"
@@ -722,57 +721,56 @@ with col_left:
     rocauc_color    = "#38bdf8" if metrics['ROC AUC'] >= 0.70 else "#fbbf24"
 
     st.markdown(f"""
-    <div class="metric-row">
-        <div class="metric-chip" title="Recall — metrik utama. Mengukur seberapa banyak klaim aktual yang berhasil terdeteksi. Semakin tinggi semakin baik.">
-            <div class="chip-label">⭐ Recall</div>
-            <div class="chip-value" style="color:{recall_color};">{metrics['Recall']:.2%}</div>
+    <div class="section-card" style="margin-top:0;">
+        <div class="section-title">🤖 Informasi Model &amp; Performa</div>
+        <div class="metric-row">
+            <div class="metric-chip" title="Recall — metrik utama. Mengukur seberapa banyak klaim aktual yang berhasil terdeteksi.">
+                <div class="chip-label">⭐ Recall</div>
+                <div class="chip-value" style="color:{recall_color};">{metrics['Recall']:.2%}</div>
+            </div>
+            <div class="metric-chip" title="Precision — rendah adalah wajar pada data imbalanced (~1.7% klaim). Trade-off yang disengaja.">
+                <div class="chip-label">Precision ⚠️</div>
+                <div class="chip-value" style="color:{precision_color};">{metrics['Precision']:.2%}</div>
+            </div>
+            <div class="metric-chip" title="F1-Score — harmonic mean antara Precision dan Recall.">
+                <div class="chip-label">F1-Score</div>
+                <div class="chip-value" style="color:{f1_color};">{metrics['F1']:.2%}</div>
+            </div>
+            <div class="metric-chip" title="PR AUC — Area Under Precision-Recall Curve. Lebih relevan untuk data sangat imbalanced.">
+                <div class="chip-label">PR AUC</div>
+                <div class="chip-value" style="color:{prauc_color};">{metrics['PR AUC']:.2%}</div>
+            </div>
+            <div class="metric-chip" title="ROC AUC — kemampuan model membedakan kelas Claim vs No Claim secara keseluruhan.">
+                <div class="chip-label">ROC AUC</div>
+                <div class="chip-value" style="color:{rocauc_color};">{metrics['ROC AUC']:.2%}</div>
+            </div>
         </div>
-        <div class="metric-chip" title="Precision — rendah adalah wajar pada data imbalanced (~1.7% klaim). Trade-off yang disengaja.">
-            <div class="chip-label">Precision ⚠️</div>
-            <div class="chip-value" style="color:{precision_color};">{metrics['Precision']:.2%}</div>
+        <div style="margin-top:16px; padding:14px 16px; background:rgba(8,22,42,0.6);
+                    border:1px solid rgba(251,191,36,0.2); border-left:3px solid #fbbf24;
+                    border-radius:0 10px 10px 0; font-size:12.5px; line-height:1.7;">
+            <span style="color:#fbbf24; font-weight:800; font-size:13px;">⚠️ Catatan Imbalanced Data</span><br>
+            <span style="color:#94a3b8;">
+                Dataset klaim sangat tidak seimbang (<strong style="color:#cbd5e1;">~1.7% klaim</strong>).
+                Model ini diprioritaskan untuk <strong style="color:#cbd5e1;">Recall tinggi</strong>
+                agar klaim aktual tidak terlewat — konsekuensinya Precision menjadi rendah
+                (trade-off yang disengaja). Hover pada label metrik untuk penjelasan lebih lanjut.
+            </span>
         </div>
-        <div class="metric-chip" title="F1-Score — harmonic mean antara Precision dan Recall.">
-            <div class="chip-label">F1-Score</div>
-            <div class="chip-value" style="color:{f1_color};">{metrics['F1']:.2%}</div>
-        </div>
-        <div class="metric-chip" title="PR AUC — Area Under Precision-Recall Curve. Lebih relevan dari ROC AUC untuk data sangat imbalanced.">
-            <div class="chip-label">PR AUC</div>
-            <div class="chip-value" style="color:{prauc_color};">{metrics['PR AUC']:.2%}</div>
-        </div>
-        <div class="metric-chip" title="ROC AUC — kemampuan model membedakan kelas Claim vs No Claim secara keseluruhan.">
-            <div class="chip-label">ROC AUC</div>
-            <div class="chip-value" style="color:{rocauc_color};">{metrics['ROC AUC']:.2%}</div>
-        </div>
-    </div>
-
-    <div style="margin-top:16px; padding:14px 16px; background:rgba(8,22,42,0.6);
-                border:1px solid rgba(251,191,36,0.2); border-left:3px solid #fbbf24;
-                border-radius:0 10px 10px 0; font-size:12.5px; line-height:1.7;">
-        <span style="color:#fbbf24; font-weight:800; font-size:13px;">⚠️ Catatan Imbalanced Data</span><br>
-        <span style="color:#94a3b8;">
-            Dataset klaim sangat tidak seimbang (<strong style="color:#cbd5e1;">~1.7% klaim</strong>).
-            Model ini diprioritaskan untuk <strong style="color:#cbd5e1;">Recall tinggi</strong>
-            agar klaim aktual tidak terlewat — konsekuensinya Precision menjadi rendah
-            (trade-off yang disengaja). Hover pada label metrik untuk penjelasan lebih lanjut.
-        </span>
-    </div>
     </div>
     """, unsafe_allow_html=True)
 
 with col_right:
     # ── Prediction Result ──
-    st.markdown("""
-    <div class="section-card">
-        <div class="section-title">🎯 Hasil Prediksi</div>
-    """, unsafe_allow_html=True)
-
     if not predict_btn:
         st.markdown("""
-        <div style="text-align:center; padding: 50px 20px; color:#475569;">
-            <div style="font-size:52px; margin-bottom:16px; opacity:0.6;">🔍</div>
-            <div style="font-size:15px; font-weight:600; color:#64748b; margin-bottom:6px;">Siap untuk Prediksi</div>
-            <div style="font-size:13px; color:#475569;">Isi input di sidebar dan klik<br><strong style="color:#38bdf8;">Prediksi Klaim</strong> untuk memulai</div>
-        </div>
+        <div class="section-card">
+            <div class="section-title">🎯 Hasil Prediksi</div>
+            <div style="text-align:center; padding: 50px 20px; color:#475569;">
+                <div style="font-size:56px; margin-bottom:18px; opacity:0.5;">🔍</div>
+                <div style="font-size:16px; font-weight:700; color:#64748b; margin-bottom:8px;">Siap untuk Prediksi</div>
+                <div style="font-size:13px; color:#475569; line-height:1.6;">Isi input di sidebar dan klik<br>
+                    <strong style="color:#38bdf8; font-size:14px;">Prediksi Klaim</strong> untuk memulai</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -870,31 +868,37 @@ with col_right:
             thr_label     = f"threshold {threshold:.2f}"
 
             card_html = (
-                f'<div style="background:{risk_bg};border:2px solid {risk_border};border-radius:16px;'
-                f'padding:28px 24px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">'
-                f'<div style="font-size:52px;margin-bottom:8px;">{risk_emoji}</div>'
-                f'<div style="font-size:30px;font-weight:900;color:{risk_color};letter-spacing:-1px;margin-bottom:6px;">{pred_display}</div>'
-                f'<div style="color:#94a3b8;font-size:13px;margin-bottom:18px;font-weight:500;">{pred_sublabel}</div>'
+                f'<div class="section-card" style="padding:20px 22px;">'
+                f'<div class="section-title">🎯 Hasil Prediksi</div>'
+                # outer result card
+                f'<div style="background:{risk_bg};border:2px solid {risk_border};border-radius:14px;'
+                f'padding:24px 20px 20px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">'
+                f'<div style="font-size:56px;margin-bottom:8px;line-height:1;">{risk_emoji}</div>'
+                f'<div style="font-size:34px;font-weight:900;color:{risk_color};letter-spacing:-1.5px;margin-bottom:6px;">{pred_display}</div>'
+                f'<div style="color:#94a3b8;font-size:13px;margin-bottom:16px;font-weight:500;">{pred_sublabel}</div>'
                 f'<div style="display:inline-block;background:{risk_bg};color:{risk_color};'
-                f'border:1.5px solid {risk_border};border-radius:999px;padding:7px 24px;'
+                f'border:1.5px solid {risk_border};border-radius:999px;padding:7px 26px;'
                 f'font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;">{risk_level}</div>'
-                f'<div style="margin:0 8px 8px 8px;">'
-                f'<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:600;'
+                # progress bar
+                f'<div style="margin:0 6px 6px 6px;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;'
                 f'color:#475569;margin-bottom:6px;letter-spacing:0.5px;">'
                 f'<span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>VERY HIGH</span></div>'
                 f'<div style="background:rgba(8,22,42,0.8);border-radius:999px;height:10px;overflow:hidden;">'
                 f'<div style="width:{bar_width};height:100%;background:linear-gradient(90deg,#34d399,#fbbf24,#f87171);'
-                f'border-radius:999px;transition:width 0.5s ease;"></div></div>'
+                f'border-radius:999px;"></div></div>'
                 f'<div style="position:relative;height:22px;">'
                 f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);'
                 f'border-left:2px dashed rgba(251,191,36,0.7);height:12px;"></div>'
                 f'<div style="position:absolute;left:{thr_left};transform:translateX(-50%);'
                 f'top:13px;font-size:9px;color:#fbbf24;white-space:nowrap;font-weight:700;">{thr_label}</div>'
                 f'</div></div>'
-                f'<div style="margin-top:16px;padding:12px 16px;background:rgba(8,22,42,0.6);'
+                # desc
+                f'<div style="margin-top:12px;padding:11px 14px;background:rgba(8,22,42,0.6);'
                 f'border-radius:10px;font-size:12.5px;color:#94a3b8;border-left:3px solid {risk_border};'
                 f'text-align:left;line-height:1.5;">{risk_desc}</div>'
-                f'</div>'
+                f'</div>'  # end result card
+                f'</div>'  # end section-card
             )
             st.markdown(card_html, unsafe_allow_html=True)
 
@@ -965,31 +969,23 @@ with col_right:
                 ticks_svg += f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" dominant-baseline="middle" fill="{tc}" font-size="8.5" font-weight="700" opacity="0.8">{tl}</text>'
 
             gauge_html = f"""
-            <div style="margin-top:20px; padding:22px 16px 16px; background:rgba(8,22,42,0.7);
-                        border:1px solid rgba(56,189,248,0.15); border-radius:14px;
-                        box-shadow:0 4px 24px rgba(0,0,0,0.2);">
-              <div style="color:#64748b; font-size:11px; font-weight:800; text-transform:uppercase;
-                          letter-spacing:2px; margin-bottom:10px; text-align:center;">
-                Probabilitas Klaim
-              </div>
-              <svg viewBox="0 0 320 175" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:380px; display:block; margin:0 auto;">
+            <div class="section-card" style="padding:20px 18px 16px;">
+              <div class="section-title">📊 Probabilitas Klaim</div>
+              <svg viewBox="0 0 320 175" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:360px; display:block; margin:0 auto;">
                 {bg_arc}
                 {zone_paths}
                 {active_arc}
                 {ticks_svg}
-                <!-- Needle shadow -->
                 <line x1="{cx}" y1="{cy}" x2="{nx:.2f}" y2="{ny:.2f}" stroke="rgba(0,0,0,0.4)" stroke-width="6" stroke-linecap="round"/>
-                <!-- Needle -->
                 <line x1="{cx}" y1="{cy}" x2="{nx:.2f}" y2="{ny:.2f}" stroke="{gauge_color}" stroke-width="3.5" stroke-linecap="round"/>
-                <!-- Center pin -->
                 <circle cx="{cx}" cy="{cy}" r="10" fill="{gauge_color}" opacity="0.9"/>
                 <circle cx="{cx}" cy="{cy}" r="6" fill="rgba(8,22,42,0.95)"/>
                 <circle cx="{cx}" cy="{cy}" r="3" fill="{gauge_color}"/>
-                <!-- Big percentage label -->
                 <text x="{cx}" y="{cy+32}" text-anchor="middle" fill="{gauge_color}" font-size="32" font-weight="900">{prob_pct:.1f}%</text>
                 <text x="{cx}" y="{cy+50}" text-anchor="middle" fill="#475569" font-size="11" font-weight="600" letter-spacing="1">PROBABILITAS KLAIM</text>
               </svg>
-              <div style="display:flex; justify-content:center; gap:18px; margin-top:8px; flex-wrap:wrap;">
+              <div style="display:flex; justify-content:center; gap:16px; margin-top:10px; flex-wrap:wrap;
+                          padding:10px 0 2px; border-top:1px solid rgba(56,189,248,0.08);">
                 <span style="font-size:12px; color:#34d399; font-weight:600;">🟢 Rendah (0–40%)</span>
                 <span style="font-size:12px; color:#fbbf24; font-weight:600;">🟡 Sedang (40–70%)</span>
                 <span style="font-size:12px; color:#f87171; font-weight:600;">🔴 Tinggi (70–100%)</span>
@@ -1007,8 +1003,6 @@ with col_right:
                 </span>
             </div>
             """, unsafe_allow_html=True)
-
-            # ── Interpretasi Faktor Risiko ──
             risk_factors = []
             safe_factors = []
 
@@ -1066,16 +1060,11 @@ with col_right:
 
             if factors_html:
                 st.markdown(
-                    '<div style="margin-top:16px;padding:16px 18px;background:rgba(8,22,42,0.7);'
-                    'border:1px solid rgba(56,189,248,0.12);border-radius:12px;">'
-                    '<div style="color:#64748b;font-size:11px;font-weight:800;text-transform:uppercase;'
-                    'letter-spacing:1.5px;margin-bottom:14px;padding-bottom:10px;'
-                    'border-bottom:1px solid rgba(56,189,248,0.08);">🔍 Interpretasi Faktor Risiko</div>'
+                    '<div class="section-card" style="margin-top:0;">'
+                    '<div class="section-title">🔍 Interpretasi Faktor Risiko</div>'
                     + factors_html + "</div>",
                     unsafe_allow_html=True
                 )
-
-            st.markdown("</div>", unsafe_allow_html=True)
 
         except Exception as e:
             st.markdown(f"""
@@ -1084,17 +1073,11 @@ with col_right:
                 {str(e)}<br><br>
                 Pastikan file model kompatibel dengan versi library yang digunakan.
             </div>
-            </div>
             """, unsafe_allow_html=True)
             st.stop()
 
 # ─── FEATURE ENGINEERING SECTION ──────────────────────────────────────────────
 if predict_btn and model_pkg is not None:
-    st.markdown("""
-    <div class="section-card">
-        <div class="section-title">⚙️ Hasil Feature Engineering</div>
-    """, unsafe_allow_html=True)
-
     def bool_badge(val):
         if val == 1:
             return '<span class="fe-badge-yes">Ya (1)</span>'
@@ -1111,14 +1094,19 @@ if predict_btn and model_pkg is not None:
         ("Is Online", bool_badge(is_online)),
         ("High Risk Dest.", bool_badge(high_risk_destination)),
     ]
+    fe_html_inner = '<div class="fe-grid">'
     for label, value in fe_items:
-        fe_html += f"""
+        fe_html_inner += f"""
         <div class="fe-item">
             <div class="fe-label">{label}</div>
             <div class="fe-value">{value}</div>
         </div>"""
-    fe_html += '</div></div>'
-    st.markdown(fe_html, unsafe_allow_html=True)
+    fe_html_inner += '</div>'
+    st.markdown(
+        '<div class="section-card"><div class="section-title">⚙️ Hasil Feature Engineering</div>'
+        + fe_html_inner + '</div>',
+        unsafe_allow_html=True
+    )
 
 # ─── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -1126,11 +1114,11 @@ st.markdown("""
     <div style="display:inline-flex; align-items:center; gap:12px; padding:12px 28px;
                 background:rgba(8,22,42,0.5); border:1px solid rgba(56,189,248,0.1);
                 border-radius:999px;">
-        <span style="color:#1e3a5f; font-size:12px; font-weight:500;">✈️ Travel Insurance Claim Predictor</span>
-        <span style="color:#1e3a5f; font-size:10px;">·</span>
-        <span style="color:#1e3a5f; font-size:12px; font-weight:500;">Capstone Project Module 3</span>
-        <span style="color:#1e3a5f; font-size:10px;">·</span>
-        <span style="color:#1e3a5f; font-size:12px; font-weight:500;">Logistic Regression Balanced</span>
+        <span style="color:#475569; font-size:12px; font-weight:500;">✈️ Travel Insurance Claim Predictor</span>
+        <span style="color:#334155; font-size:10px;">·</span>
+        <span style="color:#475569; font-size:12px; font-weight:500;">Capstone Project Module 3</span>
+        <span style="color:#334155; font-size:10px;">·</span>
+        <span style="color:#475569; font-size:12px; font-weight:500;">Logistic Regression Balanced</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
