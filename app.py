@@ -586,28 +586,47 @@ with col_left:
         <div class="section-title">🤖 Informasi Model</div>
     """, unsafe_allow_html=True)
 
+    # Warna metrik: Recall = prioritas utama (biru terang), lainnya kontekstual
+    recall_color    = "#3fb950" if metrics['Recall']    >= 0.7  else ("#d29922" if metrics['Recall']    >= 0.5  else "#f85149")
+    precision_color = "#6e7681"  # selalu abu — precision rendah wajar untuk balanced model
+    f1_color        = "#58a6ff" if metrics['F1']        >= 0.15 else "#d29922"
+    prauc_color     = "#58a6ff" if metrics['PR AUC']    >= 0.10 else "#d29922"
+    rocauc_color    = "#58a6ff" if metrics['ROC AUC']   >= 0.70 else "#d29922"
+
     st.markdown(f"""
     <div class="metric-row">
-        <div class="metric-chip">
-            <div class="chip-label">Recall</div>
-            <div class="chip-value" style="color:#58a6ff;">{metrics['Recall']:.2%}</div>
+        <div class="metric-chip" title="Recall — metrik utama. Mengukur seberapa banyak klaim aktual yang berhasil terdeteksi. Semakin tinggi semakin baik.">
+            <div class="chip-label">⭐ Recall</div>
+            <div class="chip-value" style="color:{recall_color};">{metrics['Recall']:.2%}</div>
         </div>
-        <div class="metric-chip">
-            <div class="chip-label">Precision</div>
-            <div class="chip-value" style="color:#58a6ff;">{metrics['Precision']:.2%}</div>
+        <div class="metric-chip" title="Precision — rendah adalah wajar pada data imbalanced (klaim hanya ~1.7%). Model sengaja diprioritaskan untuk mendeteksi lebih banyak klaim (Recall tinggi), sehingga ada trade-off dengan Precision.">
+            <div class="chip-label">Precision ⚠️</div>
+            <div class="chip-value" style="color:{precision_color};">{metrics['Precision']:.2%}</div>
         </div>
-        <div class="metric-chip">
+        <div class="metric-chip" title="F1-Score — harmonic mean antara Precision dan Recall.">
             <div class="chip-label">F1-Score</div>
-            <div class="chip-value" style="color:#58a6ff;">{metrics['F1']:.2%}</div>
+            <div class="chip-value" style="color:{f1_color};">{metrics['F1']:.2%}</div>
         </div>
-        <div class="metric-chip">
+        <div class="metric-chip" title="PR AUC — Area Under Precision-Recall Curve. Lebih relevan dari ROC AUC untuk data sangat imbalanced.">
             <div class="chip-label">PR AUC</div>
-            <div class="chip-value" style="color:#58a6ff;">{metrics['PR AUC']:.2%}</div>
+            <div class="chip-value" style="color:{prauc_color};">{metrics['PR AUC']:.2%}</div>
         </div>
-        <div class="metric-chip">
+        <div class="metric-chip" title="ROC AUC — kemampuan model membedakan kelas Claim vs No Claim secara keseluruhan.">
             <div class="chip-label">ROC AUC</div>
-            <div class="chip-value" style="color:#58a6ff;">{metrics['ROC AUC']:.2%}</div>
+            <div class="chip-value" style="color:{rocauc_color};">{metrics['ROC AUC']:.2%}</div>
         </div>
+    </div>
+
+    <!-- Catatan konteks imbalanced -->
+    <div style="margin-top:14px; padding:12px 14px; background:#0d1117; border:1px solid #21262d;
+                border-left: 3px solid #d29922; border-radius:0 8px 8px 0; font-size:12px; line-height:1.6;">
+        <span style="color:#d29922; font-weight:700;">⚠️ Catatan Imbalanced Data</span><br>
+        <span style="color:#8b949e;">
+            Dataset klaim sangat tidak seimbang (<strong style="color:#c9d1d9;">~1.7% klaim</strong>).
+            Model ini diprioritaskan untuk <strong style="color:#c9d1d9;">Recall tinggi</strong>
+            agar klaim aktual tidak terlewat — konsekuensinya Precision menjadi rendah
+            (trade-off yang disengaja). Hover pada label metrik untuk penjelasan lebih lanjut.
+        </span>
     </div>
     </div>
     """, unsafe_allow_html=True)
